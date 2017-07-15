@@ -5,6 +5,7 @@
 import time
 import hmac
 import hashlib
+
 try:
     from urllib import urlencode
     from urlparse import urljoin
@@ -21,13 +22,14 @@ BASE_URL = 'https://bittrex.com/api/v1.1/%s/'
 
 MARKET_SET = {'getopenorders', 'cancel', 'sellmarket', 'selllimit', 'buymarket', 'buylimit'}
 
-ACCOUNT_SET = {'getbalances', 'getbalance', 'getdepositaddress', 'withdraw', 'getorderhistory'}
+ACCOUNT_SET = {'getbalances', 'getbalance', 'getdepositaddress', 'withdraw', 'getorderhistory', 'getorder'}
 
 
 class Bittrex(object):
     """
     Used for requesting Bittrex with API key and API secret
     """
+
     def __init__(self, api_key, api_secret):
         self.api_key = str(api_key) if api_key is not None else ''
         self.api_secret = str(api_secret) if api_secret is not None else ''
@@ -159,10 +161,6 @@ class Bittrex(object):
         :param quantity: The amount to purchase
         :type quantity: float
 
-        :param rate: The rate at which to place the order.
-            This is not needed for market orders
-        :type rate: float
-
         :return:
         :rtype : dict
         """
@@ -204,10 +202,6 @@ class Bittrex(object):
 
         :param quantity: The amount to purchase
         :type quantity: float
-
-        :param rate: The rate at which to place the order.
-            This is not needed for market orders
-        :type rate: float
 
         :return:
         :rtype : dict
@@ -251,7 +245,7 @@ class Bittrex(object):
         """
         return self.api_query('cancel', {'uuid': uuid})
 
-    def get_open_orders(self, market):
+    def get_open_orders(self, market=None):
         """
         Get all orders that you currently have opened. A specific market can be requested
 
@@ -263,14 +257,18 @@ class Bittrex(object):
         :return: Open orders info in JSON
         :rtype : dict
         """
-        return self.api_query('getopenorders', {'market': market})
+        options = {}
+        if market:
+            options['market'] = market
+
+        return self.api_query('getopenorders', options)
 
     def get_balances(self):
         """
         Used to retrieve all balances from your account
-
+    
         /account/getbalances
-
+    
         :return: Balances info in JSON
         :rtype : dict
         """
@@ -279,12 +277,12 @@ class Bittrex(object):
     def get_balance(self, currency):
         """
         Used to retrieve the balance from your account for a specific currency
-
+    
         /account/getbalance
-
+    
         :param currency: String literal for the currency (ex: LTC)
         :type currency: str
-
+    
         :return: Balance info in JSON
         :rtype : dict
         """
@@ -293,12 +291,12 @@ class Bittrex(object):
     def get_deposit_address(self, currency):
         """
         Used to generate or retrieve an address for a specific currency
-
+    
         /account/getdepositaddress
-
+    
         :param currency: String literal for the currency (ie. BTC)
         :type currency: str
-
+    
         :return: Address info in JSON
         :rtype : dict
         """
@@ -307,37 +305,58 @@ class Bittrex(object):
     def withdraw(self, currency, quantity, address):
         """
         Used to withdraw funds from your account
-
+    
         /account/withdraw
-
+    
         :param currency: String literal for the currency (ie. BTC)
         :type currency: str
-
+    
         :param quantity: The quantity of coins to withdraw
         :type quantity: float
-
+    
         :param address: The address where to send the funds.
         :type address: str
-
+    
         :return:
         :rtype : dict
         """
         return self.api_query('withdraw', {'currency': currency, 'quantity': quantity, 'address': address})
 
-    def get_order_history(self, market, count):
+    def get_order_history(self, market=None, count=None):
         """
         Used to reterieve order trade history of account
-
+    
         /account/getorderhistory
-
+    
         :param market: optional a string literal for the market (ie. BTC-LTC). If ommited, will return for all markets
         :type market: str
-
+    
         :param count: optional 	the number of records to return
         :type count: int
-
+    
         :return: order history in JSON
         :rtype : dict
-
+    
         """
-        return self.api_query('getorderhistory', {'market':market, 'count': count})
+        options = {}
+        if market:
+            options['market'] = market
+        if count:
+            options['count'] = count
+
+        return self.api_query('getorderhistory', options)
+
+    def get_order(self, uuid):
+        """
+                Used to retrieve a specific order
+
+                /account/getorder
+
+                :param uuid: The Uuid of the order. Required 
+                :type uuid: str
+
+                :return: order in JSON
+                :rtype : dict
+
+                """
+        return self.api_query('getorder', {'uuid': uuid})
