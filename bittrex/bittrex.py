@@ -67,7 +67,7 @@ class Bittrex(object):
             return requests.get(request_url, headers={
                 "apisign": hmac.new(self.api_secret.encode(), request_url.encode(), hashlib.sha512).hexdigest()}).json()
         except:
-            return None
+            return {'success':false, 'message':'Exception occured during API request'}
 
     def get_markets(self):
         """
